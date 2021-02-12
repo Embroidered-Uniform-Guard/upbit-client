@@ -5,13 +5,13 @@
 - `Python Upbit Client Repository <https://github.com/uJhin/python-upbit-client>`_
 
 Upbit OPEN API Client
-**********************
+######################
 - @Author: `uJhin <https://github.com/uJhin>`_
 - @GitHub: https://github.com/uJhin/upbit-client/
 - @Official Documents: https://ujhin.github.io/upbit-client-docs/
 
 Install
-========
+*******
 - pip command
 
 .. code:: console
@@ -26,7 +26,10 @@ Install
 
 
 Simple Examples
-===============
+***************
+
+REST Client
+===========
 
 - Check Your API Keys
 
@@ -40,7 +43,8 @@ Simple Examples
     secret_key = "Your Secret Key"
 
     client = Upbit(access_key, secret_key)
-    print(client.APIKey.APIKey_info().result())
+    api_keys = client.APIKey.APIKey_info()
+    print(api_keys['result'])
 
 
 - Buy Currency
@@ -61,8 +65,8 @@ Simple Examples
         volume='0.1',
         price='3000000',
         ord_type='limit'
-    ).result()
-    print(order)
+    )
+    print(order['result'])
 
 
 - Sell Currency
@@ -83,8 +87,48 @@ Simple Examples
         volume='0.1',
         price='3000000',
         ord_type='limit'
-    ).result()
-    print(order)
+    )
+    print(order['result'])
+
+WebSocket Client
+================
+
+- Get Real-Time Ticker
+
+.. code:: python
+
+    # Using WebSocket
+
+    import json
+    import asyncio
+
+    from upbit.websocket import UpbitWebSocket
+
+
+    # Definition async function
+    async def ticker(sock, payload):
+        async with sock as conn:
+            while True:
+                await conn.send(payload)
+                recv = await conn.recv()
+                data = recv.decode('utf8')
+                result = json.loads(data)
+                print(result)
+
+
+    sock = UpbitWebSocket()
+
+    currencies = ['KRW-BTC', 'KRW-ETH']
+    type_field = sock.generate_type_field(
+        type='ticker',
+        codes=currencies,
+    )
+    payload = sock.generate_payload(
+        type_fields=[type_field]
+    )
+
+    event_loop = asyncio.get_event_loop()
+    event_loop.run_until_complete(ticker(sock, payload))
 
 Donation
 *********
